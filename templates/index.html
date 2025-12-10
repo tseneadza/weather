@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Weather Dashboard - Weather Monitoring{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>Weather Dashboard</h2>
+        <button class="btn btn-primary" onclick="showAddLocation()">+ Add Location</button>
+    </div>
+    
+    <div id="addLocationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddLocation()">&times;</span>
+            <h3>Add Location</h3>
+            <div class="search-box">
+                <input type="text" id="locationSearch" placeholder="Search for a city..." autocomplete="off">
+                <button class="btn btn-primary" onclick="searchLocations()">Search</button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+    
+    <div class="locations-grid">
+        {% if locations_data %}
+            {% for item in locations_data %}
+            <div class="location-card">
+                <div class="location-header">
+                    <h3>{{ item.location.name }}</h3>
+                    {% if item.location.region %}
+                    <span class="location-region">{{ item.location.region }}, {{ item.location.country }}</span>
+                    {% else %}
+                    <span class="location-region">{{ item.location.country }}</span>
+                    {% endif %}
+                </div>
+                
+                {% if item.weather %}
+                <div class="weather-date-dashboard">
+                    <span class="date-label-dashboard">{{ item.weather.date.strftime('%A, %B %d, %Y') }}</span>
+                </div>
+                
+                <div class="weather-display">
+                    <div class="temp-main">
+                        <span class="temp-value">{{ "%.1f"|format(item.weather.avg_temp) }}°C</span>
+                        <span class="condition">{{ item.weather.condition_text }}</span>
+                    </div>
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <span class="label">High:</span>
+                            <span class="value">{{ "%.1f"|format(item.weather.high_temp) }}°C</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Low:</span>
+                            <span class="value">{{ "%.1f"|format(item.weather.low_temp) }}°C</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Precipitation:</span>
+                            <span class="value">{{ "%.1f"|format(item.weather.precipitation_mm) }}mm</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Humidity:</span>
+                            <span class="value">{{ item.weather.humidity }}%</span>
+                        </div>
+                        {% if item.weather.moon_phase %}
+                        <div class="detail-item">
+                            <span class="label">Moon:</span>
+                            <span class="value">{{ item.weather.moon_phase }} ({{ "%.0f"|format(item.weather.moon_illumination) }}%)</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="weather-display">
+                    <p class="no-data">No weather data available</p>
+                </div>
+                {% endif %}
+                
+                {% if item.forecast %}
+                <div class="forecast-weekly">
+                    <h4>7-Day Forecast</h4>
+                    <div class="forecast-list">
+                        {% for day in item.forecast %}
+                        <div class="forecast-item">
+                            <div class="forecast-day-name">{{ day.forecast_date.strftime('%a') }}</div>
+                            <div class="forecast-date-small">{{ day.forecast_date.strftime('%b %d') }}</div>
+                            <div class="forecast-temps-small">
+                                <span class="forecast-high">{{ "%.0f"|format(day.high_temp) }}°</span>
+                                <span class="forecast-low">{{ "%.0f"|format(day.low_temp) }}°</span>
+                            </div>
+                            <div class="forecast-condition-small">{{ day.condition_text }}</div>
+                            {% if day.chance_of_rain %}
+                            <div class="forecast-rain">💧 {{ day.chance_of_rain }}%</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="location-actions">
+                    <a href="{{ url_for('location_detail', location_id=item.location.id) }}" class="btn btn-secondary">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <p>No locations added yet. Click "Add Location" to get started!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function showAddLocation() {
+    document.getElementById('addLocationModal').style.display = 'block';
+}
+
+function closeAddLocation() {
+    document.getElementById('addLocationModal').style.display = 'none';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('locationSearch').value = '';
+}
+
+function searchLocations() {
+    const query = document.getElementById('locationSearch').value.trim();
+    if (query.length < 2) {
+        alert('Please enter at least 2 characters');
+        return;
+    }
+    
+    fetch(`/api/search?q=${encodeURIComponent(query)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                displaySearchResults(data.data);
+            } else {
+                alert('Search failed: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            alert('Error searching: ' + err.message);
+        });
+}
+
+function displaySearchResults(locations) {
+    const resultsDiv = document.getElementById('searchResults');
+    if (locations.length === 0) {
+        resultsDiv.innerHTML = '<p>No locations found</p>';
+        return;
+    }
+    
+    resultsDiv.innerHTML = locations.map(loc => `
+        <div class="search-result-item" onclick="addLocation('${loc.name}', '${loc.country || ''}', '${loc.region || ''}')">
+            <strong>${loc.name}</strong>
+            ${loc.region ? loc.region + ', ' : ''}${loc.country || ''}
+        </div>
+    `).join('');
+}
+
+function addLocation(name, country, region) {
+    fetch('/api/locations', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: name, country: country, region: region})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to add location: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        alert('Error adding location: ' + err.message);
+    });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('addLocationModal');
+    if (event.target == modal) {
+        closeAddLocation();
+    }
+}
+</script>
+{% endblock %}

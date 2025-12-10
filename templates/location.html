@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ location.name }} - Weather Monitoring{% endblock %}
+
+{% block content %}
+<div class="location-detail">
+    <div class="location-header-detail">
+        <h2>{{ location.name }}</h2>
+        {% if location.region %}
+        <p class="location-meta">{{ location.region }}, {{ location.country }}</p>
+        {% else %}
+        <p class="location-meta">{{ location.country }}</p>
+        {% endif %}
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+    
+    {% if today_weather %}
+    <div class="today-weather">
+        <h3>Today's Weather</h3>
+        <div class="weather-card">
+            <div class="weather-date">
+                <span class="date-label">{{ today_weather.date.strftime('%A, %B %d, %Y') }}</span>
+            </div>
+            <div class="weather-main">
+                <div class="temp-large">{{ "%.1f"|format(today_weather.avg_temp) }}°C</div>
+                <div class="condition-large">{{ today_weather.condition_text }}</div>
+            </div>
+            <div class="weather-grid">
+                <div class="weather-item">
+                    <span class="label">High</span>
+                    <span class="value">{{ "%.1f"|format(today_weather.high_temp) }}°C</span>
+                </div>
+                <div class="weather-item">
+                    <span class="label">Low</span>
+                    <span class="value">{{ "%.1f"|format(today_weather.low_temp) }}°C</span>
+                </div>
+                <div class="weather-item">
+                    <span class="label">Precipitation</span>
+                    <span class="value">{{ "%.1f"|format(today_weather.precipitation_mm) }}mm</span>
+                </div>
+                <div class="weather-item">
+                    <span class="label">Humidity</span>
+                    <span class="value">{{ today_weather.humidity }}%</span>
+                </div>
+                <div class="weather-item">
+                    <span class="label">Wind Speed</span>
+                    <span class="value">{{ "%.1f"|format(today_weather.wind_speed_kmh) }} km/h</span>
+                </div>
+                <div class="weather-item">
+                    <span class="label">Wind Direction</span>
+                    <span class="value">{{ today_weather.wind_direction }}</span>
+                </div>
+                <div class="weather-item">
+                    <span class="label">Pressure</span>
+                    <span class="value">{{ today_weather.pressure_mb }} mb</span>
+                </div>
+                <div class="weather-item">
+                    <span class="label">UV Index</span>
+                    <span class="value">{{ today_weather.uv_index }}</span>
+                </div>
+                {% if today_weather.sunrise %}
+                <div class="weather-item">
+                    <span class="label">Sunrise</span>
+                    <span class="value">{{ today_weather.sunrise }}</span>
+                </div>
+                {% endif %}
+                {% if today_weather.sunset %}
+                <div class="weather-item">
+                    <span class="label">Sunset</span>
+                    <span class="value">{{ today_weather.sunset }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if today_weather.moon_phase %}
+    <div class="moon-phase">
+        <h3>Moon Phase</h3>
+        <div class="moon-card">
+            <div class="moon-info">
+                <span class="moon-phase-name">{{ today_weather.moon_phase }}</span>
+                <span class="moon-illumination">{{ "%.0f"|format(today_weather.moon_illumination) }}% illuminated</span>
+            </div>
+            {% if today_weather.moonrise %}
+            <div class="moon-times">
+                <span>Moonrise: {{ today_weather.moonrise }}</span>
+                {% if today_weather.moonset %}
+                <span>Moonset: {{ today_weather.moonset }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if tides %}
+    <div class="tides-section">
+        <h3>Tides</h3>
+        <div class="tides-card">
+            <div class="tides-list">
+                {% for tide in tides %}
+                <div class="tide-item">
+                    <span class="tide-time">{{ tide.time }}</span>
+                    <span class="tide-type tide-{{ tide.tide_type }}">{{ tide.tide_type|title }}</span>
+                    <span class="tide-height">{{ "%.2f"|format(tide.height_meters) }}m</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+    
+    {% if forecast %}
+    <div class="forecast-section">
+        <h3>7-Day Forecast</h3>
+        <div class="forecast-grid">
+            {% for day in forecast %}
+            <div class="forecast-day">
+                <div class="forecast-date">{{ day.forecast_date.strftime('%b %d') }}</div>
+                <div class="forecast-temps">
+                    <span class="high">{{ "%.0f"|format(day.high_temp) }}°</span>
+                    <span class="low">{{ "%.0f"|format(day.low_temp) }}°</span>
+                </div>
+                <div class="forecast-condition">{{ day.condition_text }}</div>
+                <div class="forecast-precip">
+                    <span>💧 {{ "%.0f"|format(day.precipitation_mm) }}mm</span>
+                    <span>☔ {{ day.chance_of_rain }}%</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if historical %}
+    <div class="historical-section">
+        <h3>Historical Data (Last 30 Days)</h3>
+        <div class="historical-table-container">
+            <table class="historical-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>High</th>
+                        <th>Low</th>
+                        <th>Precip</th>
+                        <th>Humidity</th>
+                        <th>Moon Phase</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in historical %}
+                    <tr>
+                        <td>{{ day.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ "%.1f"|format(day.high_temp) }}°C</td>
+                        <td>{{ "%.1f"|format(day.low_temp) }}°C</td>
+                        <td>{{ "%.1f"|format(day.precipitation_mm) }}mm</td>
+                        <td>{{ day.humidity }}%</td>
+                        <td>{{ day.moon_phase or 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
