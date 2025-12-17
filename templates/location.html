@@ -79,7 +79,10 @@
         <h3>Moon Phase</h3>
         <div class="moon-card">
             <div class="moon-info">
-                <span class="moon-phase-name">{{ today_weather.moon_phase }}</span>
+                <div class="moon-phase-display">
+                    <span class="moon-icon">{{ today_weather.moon_phase_icon or get_moon_phase_icon(today_weather.moon_phase) }}</span>
+                    <span class="moon-phase-name">{{ today_weather.moon_phase }}</span>
+                </div>
                 <span class="moon-illumination">{{ "%.0f"|format(today_weather.moon_illumination) }}% illuminated</span>
             </div>
             {% if today_weather.moonrise %}
@@ -157,7 +160,16 @@
                         <td>{{ "%.1f"|format(day.low_temp) }}°C</td>
                         <td>{{ "%.1f"|format(day.precipitation_mm) }}mm</td>
                         <td>{{ day.humidity }}%</td>
-                        <td>{{ day.moon_phase or 'N/A' }}</td>
+                        <td>
+                            {% if day.moon_phase %}
+                            <span class="moon-phase-cell">
+                                <span class="moon-icon-small">{{ day.moon_phase_icon or get_moon_phase_icon(day.moon_phase) }}</span>
+                                <span class="moon-phase-text">{{ day.moon_phase }}</span>
+                            </span>
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

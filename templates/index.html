@@ -75,6 +75,12 @@
                 </div>
                 {% endif %}
                 
+                <!-- Weekly Average Section -->
+                <div class="weekly-average" id="weekly-avg-{{ item.location.id }}">
+                    <h4>📊 Last 7 Days Average</h4>
+                    <div class="weekly-avg-loading">Loading...</div>
+                </div>
+                
                 {% if item.forecast %}
                 <div class="forecast-weekly">
                     <h4>7-Day Forecast</h4>
@@ -177,6 +183,62 @@ function addLocation(name, country, region) {
         alert('Error adding location: ' + err.message);
     });
 }
+
+// Load weekly averages for all locations
+function loadWeeklyAverages() {
+    // Get all location IDs from the page
+    const locationCards = document.querySelectorAll('.location-card');
+    locationCards.forEach(card => {
+        const weeklyAvgDiv = card.querySelector('[id^="weekly-avg-"]');
+        if (weeklyAvgDiv) {
+            const locationId = weeklyAvgDiv.id.replace('weekly-avg-', '');
+            fetch(`/api/weekly-average/${locationId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const avgData = data.data;
+                        weeklyAvgDiv.innerHTML = `
+                            <h4>📊 Last 7 Days Average</h4>
+                            <div class="weekly-avg-stats">
+                                <div class="weekly-avg-item">
+                                    <span class="weekly-avg-label">Avg High:</span>
+                                    <span class="weekly-avg-value high">${avgData.avg_high ? avgData.avg_high.toFixed(1) : 'N/A'}°C</span>
+                                </div>
+                                <div class="weekly-avg-item">
+                                    <span class="weekly-avg-label">Avg Low:</span>
+                                    <span class="weekly-avg-value low">${avgData.avg_low ? avgData.avg_low.toFixed(1) : 'N/A'}°C</span>
+                                </div>
+                                <div class="weekly-avg-info">
+                                    <small>${avgData.days_count} days of data</small>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        weeklyAvgDiv.innerHTML = `
+                            <h4>📊 Last 7 Days Average</h4>
+                            <div class="weekly-avg-stats">
+                                <p class="no-data">Insufficient data</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading weekly average:', err);
+                    weeklyAvgDiv.innerHTML = `
+                        <h4>📊 Last 7 Days Average</h4>
+                        <div class="weekly-avg-stats">
+                            <p class="no-data">Error loading data</p>
+                        </div>
+                    `;
+                });
+        }
+    });
+}
+
+// Load weekly averages when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadWeeklyAverages();
+});
 
 // Close modal when clicking outside
 window.onclick = function(event) {

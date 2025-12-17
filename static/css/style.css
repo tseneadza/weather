@@ -152,6 +152,75 @@ body {
     color: #333;
 }
 
+.weekly-average {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    border-left: 4px solid #667eea;
+}
+
+.weekly-average h4 {
+    font-size: 0.95em;
+    color: #667eea;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.weekly-avg-loading {
+    color: #666;
+    font-size: 0.9em;
+    text-align: center;
+    padding: 10px;
+}
+
+.weekly-avg-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.weekly-avg-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.weekly-avg-item:last-child {
+    border-bottom: none;
+}
+
+.weekly-avg-label {
+    font-size: 0.9em;
+    color: #666;
+    font-weight: 500;
+}
+
+.weekly-avg-value {
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.weekly-avg-value.high {
+    color: #e74c3c;
+}
+
+.weekly-avg-value.low {
+    color: #3498db;
+}
+
+.weekly-avg-info {
+    margin-top: 5px;
+    text-align: center;
+}
+
+.weekly-avg-info small {
+    color: #999;
+    font-size: 0.85em;
+}
+
 .forecast-weekly {
     margin-top: 20px;
     padding-top: 15px;
@@ -437,9 +506,20 @@ body {
 
 .moon-info {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 15px;
+}
+
+.moon-phase-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.moon-icon {
+    font-size: 2em;
+    line-height: 1;
 }
 
 .moon-phase-name {
@@ -456,6 +536,21 @@ body {
     display: flex;
     gap: 20px;
     color: #666;
+}
+
+.moon-phase-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.moon-icon-small {
+    font-size: 1.2em;
+    line-height: 1;
+}
+
+.moon-phase-text {
+    font-size: 0.9em;
 }
 
 .tides-card {

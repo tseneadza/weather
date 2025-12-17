@@ -310,6 +310,60 @@ def index():
     return render_template('index.html', locations_data=locations_data)
 
 
+def get_moon_phase_icon(moon_phase: str) -> str:
+    """
+    Get emoji icon for moon phase.
+    
+    Args:
+        moon_phase: Moon phase text (e.g., "Waxing Crescent", "Full Moon")
+        
+    Returns:
+        Emoji string for the moon phase
+    """
+    if not moon_phase:
+        return ""
+    
+    moon_phase_lower = moon_phase.lower()
+    
+    # Map moon phases to emojis
+    moon_icons = {
+        'new moon': '🌑',
+        'waxing crescent': '🌒',
+        'first quarter': '🌓',
+        'waxing gibbous': '🌔',
+        'full moon': '🌕',
+        'waning gibbous': '🌖',
+        'last quarter': '🌗',
+        'waning crescent': '🌘',
+        'third quarter': '🌗',  # Alternative name for last quarter
+    }
+    
+    # Try exact match first
+    if moon_phase_lower in moon_icons:
+        return moon_icons[moon_phase_lower]
+    
+    # Try partial matches
+    if 'new' in moon_phase_lower:
+        return '🌑'
+    elif 'waxing crescent' in moon_phase_lower:
+        return '🌒'
+    elif 'first quarter' in moon_phase_lower:
+        return '🌓'
+    elif 'waxing gibbous' in moon_phase_lower:
+        return '🌔'
+    elif 'full' in moon_phase_lower:
+        return '🌕'
+    elif 'waning gibbous' in moon_phase_lower:
+        return '🌖'
+    elif 'last quarter' in moon_phase_lower or 'third quarter' in moon_phase_lower:
+        return '🌗'
+    elif 'waning crescent' in moon_phase_lower:
+        return '🌘'
+    
+    # Default fallback
+    return '🌙'
+
+
 @app.route('/location/<int:location_id>')
 def location_detail(location_id: int):
     """Location detail page with historical data."""
@@ -346,6 +400,8 @@ def location_detail(location_id: int):
         weather_dict['sunset'] = format_timedelta(weather_dict.get('sunset'))
         weather_dict['moonrise'] = format_timedelta(weather_dict.get('moonrise'))
         weather_dict['moonset'] = format_timedelta(weather_dict.get('moonset'))
+        # Add moon phase icon
+        weather_dict['moon_phase_icon'] = get_moon_phase_icon(weather_dict.get('moon_phase'))
     
     # Get historical data (last 30 days)
     start_date = today - timedelta(days=30)
@@ -357,6 +413,11 @@ def location_detail(location_id: int):
         ORDER BY dw.date DESC
     """
     historical = Database.execute_query(hist_query, (location_id, start_date, today))
+    
+    # Add moon phase icons to historical data
+    if historical:
+        for day in historical:
+            day['moon_phase_icon'] = get_moon_phase_icon(day.get('moon_phase'))
     
     # Get forecast
     forecast_query = """
@@ -402,7 +463,8 @@ def location_detail(location_id: int):
                          today_weather=today_weather[0] if today_weather else None,
                          historical=historical,
                          forecast=forecast,
-                         tides=tides)
+                         tides=tides,
+                         get_moon_phase_icon=get_moon_phase_icon)
 
 
 @app.route('/api/weather/<int:location_id>')
@@ -582,6 +644,49 @@ def api_search():
     except Exception as e:
         logger.error(f"Location search error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/weekly-average/<int:location_id>')
+def api_weekly_average(location_id: int):
+    """Get average high and low temperatures for the previous week (6 days prior + today = 7 days)."""
+    location = Location.get_by_id(location_id)
+    if not location:
+        return jsonify({'success': False, 'error': 'Location not found'}), 404
+    
+    today = datetime.now().date()
+    # 6 days prior + today = 7 days total
+    start_date = today - timedelta(days=6)
+    
+    query = """
+        SELECT 
+            AVG(high_temp) as avg_high,
+            AVG(low_temp) as avg_low,
+            COUNT(*) as days_count,
+            MIN(date) as start_date,
+            MAX(date) as end_date
+        FROM daily_weather
+        WHERE location_id = %s AND date >= %s AND date <= %s
+    """
+    
+    result = Database.execute_query(query, (location_id, start_date, today))
+    
+    if result and result[0]['days_count'] and result[0]['days_count'] > 0:
+        return jsonify({
+            'success': True,
+            'data': {
+                'avg_high': float(result[0]['avg_high']) if result[0]['avg_high'] else None,
+                'avg_low': float(result[0]['avg_low']) if result[0]['avg_low'] else None,
+                'days_count': result[0]['days_count'],
+                'start_date': result[0]['start_date'].strftime('%Y-%m-%d') if result[0]['start_date'] else None,
+                'end_date': result[0]['end_date'].strftime('%Y-%m-%d') if result[0]['end_date'] else None,
+                'period': 'Last 7 days (6 days prior + today)'
+            }
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Insufficient data for weekly average'
+        }), 404
 
 
 @app.route('/api/health')

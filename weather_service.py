@@ -155,6 +155,57 @@ class WeatherAPIClient:
             'moon_illumination': astronomy.get('moon_illumination')
         }
     
+    def get_historical_weather(self, location: str, date: date) -> Dict:
+        """
+        Get historical weather data for a specific date.
+        
+        Args:
+            location: City name, zip code, or lat,lon coordinates
+            date: Date to get historical data for (up to 7 days in the past for free tier)
+            
+        Returns:
+            Dictionary with historical weather data
+        """
+        params = {
+            'q': location,
+            'dt': date.strftime('%Y-%m-%d'),
+            'aqi': 'no'
+        }
+        data = self._make_request('history.json', params)
+        
+        location_data = data.get('location', {})
+        forecast_day = data.get('forecast', {}).get('forecastday', [])
+        
+        # Get the day's data
+        day_data = forecast_day[0].get('day', {}) if forecast_day else {}
+        astro_data = forecast_day[0].get('astro', {}) if forecast_day else {}
+        
+        return {
+            'location': {
+                'name': location_data.get('name'),
+                'country': location_data.get('country'),
+                'region': location_data.get('region'),
+                'latitude': location_data.get('lat'),
+                'longitude': location_data.get('lon'),
+                'timezone': location_data.get('tz_id')
+            },
+            'date': date.strftime('%Y-%m-%d'),
+            'high_temp': day_data.get('maxtemp_c'),
+            'low_temp': day_data.get('mintemp_c'),
+            'avg_temp': day_data.get('avgtemp_c'),
+            'precipitation_mm': day_data.get('totalprecip_mm', 0),
+            'humidity': day_data.get('avghumidity'),
+            'wind_speed_kmh': day_data.get('maxwind_kph'),
+            'condition_text': day_data.get('condition', {}).get('text'),
+            'condition_icon': day_data.get('condition', {}).get('icon'),
+            'sunrise': astro_data.get('sunrise'),
+            'sunset': astro_data.get('sunset'),
+            'moonrise': astro_data.get('moonrise'),
+            'moonset': astro_data.get('moonset'),
+            'moon_phase': astro_data.get('moon_phase'),
+            'moon_illumination': astro_data.get('moon_illumination')
+        }
+    
     def search_locations(self, query: str) -> List[Dict]:
         """
         Search for locations.
