@@ -281,9 +281,9 @@ def index():
         # Get forecast for this location (next 7 days)
         forecast_query = """
             SELECT * FROM forecasts
-            WHERE location_id = %s AND forecast_date > %s
+            WHERE location_id = %s AND forecast_date >= %s
             ORDER BY forecast_date ASC
-            LIMIT 7
+            LIMIT 3
         """
         forecast = Database.execute_query(forecast_query, (location.id, today))
         logger.info(f"Location {location.id} ({location.name}): Found {len(forecast) if forecast else 0} forecast records")
@@ -422,9 +422,9 @@ def location_detail(location_id: int):
     # Get forecast
     forecast_query = """
         SELECT * FROM forecasts
-        WHERE location_id = %s AND forecast_date > %s
+        WHERE location_id = %s AND forecast_date >= %s
         ORDER BY forecast_date ASC
-        LIMIT 7
+        LIMIT 3
     """
     forecast = Database.execute_query(forecast_query, (location_id, today))
     
@@ -509,9 +509,9 @@ def api_forecast(location_id: int):
     today = datetime.now().date()
     query = """
         SELECT * FROM forecasts
-        WHERE location_id = %s AND forecast_date > %s
+        WHERE location_id = %s AND forecast_date >= %s
         ORDER BY forecast_date ASC
-        LIMIT 7
+        LIMIT 3
     """
     forecast = Database.execute_query(query, (location_id, today))
     

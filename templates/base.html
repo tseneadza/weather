@@ -4,24 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Weather Monitoring{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 1000000) | random }}">
+    <meta name="description" content="Modern weather monitoring dashboard with real-time forecasts and historical data">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <h1>🌤️ Weather Monitoring</h1>
+            <h1>Weather Monitoring</h1>
             <div class="nav-links">
                 <a href="{{ url_for('index') }}">Dashboard</a>
             </div>
         </div>
     </nav>
-    
+
     <main class="container">
         {% block content %}{% endblock %}
     </main>
-    
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}?v={{ range(1, 1000000) | random }}"></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

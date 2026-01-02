@@ -83,7 +83,7 @@
                 
                 {% if item.forecast %}
                 <div class="forecast-weekly">
-                    <h4>7-Day Forecast</h4>
+                    <h4>3-Day Forecast</h4>
                     <div class="forecast-list">
                         {% for day in item.forecast %}
                         <div class="forecast-item">
@@ -238,6 +238,15 @@ function loadWeeklyAverages() {
 // Load weekly averages when page loads
 document.addEventListener('DOMContentLoaded', function() {
     loadWeeklyAverages();
+
+    // Debug: Check forecast data
+    const forecastItems = document.querySelectorAll('.forecast-item');
+    console.log(`📅 Found ${forecastItems.length} forecast items on the page`);
+    forecastItems.forEach((item, index) => {
+        const dayName = item.querySelector('.forecast-day-name')?.textContent;
+        const date = item.querySelector('.forecast-date-small')?.textContent;
+        console.log(`  ${index + 1}. ${dayName} ${date}`);
+    });
 });
 
 // Close modal when clicking outside
