@@ -161,8 +161,11 @@ def main():
         logger.error("No existing data found to determine date range")
         return
     
-    start_date = result[0]['min_date']
-    end_date = result[0]['max_date']
+    end_date = date.today()
+    # WeatherAPI only provides historical data for the last 7 days, so don't
+    # look further back than that. Older missing dates can't be collected.
+    earliest_available = end_date - timedelta(days=7)
+    start_date = max(result[0]['min_date'], earliest_available)
     
     logger.info(f"Checking for missing dates between {start_date} and {end_date}")
     

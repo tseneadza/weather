@@ -64,7 +64,7 @@
                         {% if item.weather.moon_phase %}
                         <div class="detail-item">
                             <span class="label">Moon:</span>
-                            <span class="value">{{ item.weather.moon_phase }} ({{ "%.0f"|format(item.weather.moon_illumination) }}%)</span>
+                            <span class="value">{{ item.weather.moon_phase }} ({{ "%.0f"|format(item.weather.moon_illumination|default(0, true)) }}%)</span>
                         </div>
                         {% endif %}
                     </div>

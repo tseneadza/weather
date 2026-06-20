@@ -259,15 +259,15 @@ def index():
     """Main dashboard page."""
     locations = Location.get_all()
     logger.info(f"Found {len(locations)} locations in database")
-    
+
     # Collect data for all locations if needed
     for location in locations:
         collect_daily_weather(location.id)
-    
+
     # Get today's weather for all locations
     today = datetime.now().date()
     locations_data = []
-    
+
     for location in locations:
         query = """
             SELECT dw.*, mp.moon_phase, mp.moon_illumination
@@ -276,8 +276,10 @@ def index():
             WHERE dw.location_id = %s AND dw.date = %s
         """
         weather = Database.execute_query(query, (location.id, today))
-        logger.info(f"Location {location.id} ({location.name}): Found {len(weather) if weather else 0} weather records")
-        
+        logger.info(
+            f"Location {location.id} ({location.name}): Found {len(weather) if weather else 0} weather records"
+        )
+
         # Get forecast for this location (next 7 days)
         forecast_query = """
             SELECT * FROM forecasts
@@ -286,28 +288,32 @@ def index():
             LIMIT 3
         """
         forecast = Database.execute_query(forecast_query, (location.id, today))
-        logger.info(f"Location {location.id} ({location.name}): Found {len(forecast) if forecast else 0} forecast records")
-        
+        logger.info(
+            f"Location {location.id} ({location.name}): Found {len(forecast) if forecast else 0} forecast records"
+        )
+
         # Convert Location object to dict for template
         location_dict = {
-            'id': location.id,
-            'name': location.name,
-            'country': location.country,
-            'region': location.region,
-            'latitude': float(location.latitude) if location.latitude else None,
-            'longitude': float(location.longitude) if location.longitude else None,
-            'timezone': location.timezone,
-            'noaa_station_id': location.noaa_station_id
+            "id": location.id,
+            "name": location.name,
+            "country": location.country,
+            "region": location.region,
+            "latitude": float(location.latitude) if location.latitude else None,
+            "longitude": float(location.longitude) if location.longitude else None,
+            "timezone": location.timezone,
+            "noaa_station_id": location.noaa_station_id,
         }
-        
-        locations_data.append({
-            'location': location_dict,
-            'weather': weather[0] if weather else None,
-            'forecast': forecast if forecast else []
-        })
-    
+
+        locations_data.append(
+            {
+                "location": location_dict,
+                "weather": weather[0] if weather else None,
+                "forecast": forecast if forecast else [],
+            }
+        )
+
     logger.info(f"Rendering template with {len(locations_data)} locations")
-    return render_template('index.html', locations_data=locations_data)
+    return render_template("index.html", locations_data=locations_data)
 
 
 def get_moon_phase_icon(moon_phase: str) -> str:

@@ -169,3 +169,4 @@ Weather/
 ## License
 
 This project is part of the Codehome workspace.
+- [ ] Test CLI task creation [HIGH] [TODO]
