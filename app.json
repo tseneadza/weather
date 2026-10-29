@@ -4,9 +4,8 @@
   "description": "Weather forecasts and current conditions. Get detailed weather information for any location.",
   "version": "1.0.0",
   "type": "web",
-  "icon": "🌤️",
+  "icon": "\ud83c\udf24\ufe0f",
   "category": "tools",
-  
   "web": {
     "enabled": true,
     "entry": "app.py",
@@ -14,13 +13,45 @@
     "framework": "flask",
     "requirements": "requirements.txt",
     "venv": "venv",
-    "command": ["python3", "app.py"]
+    "command": [
+      "python3",
+      "app.py"
+    ]
   },
-  
   "desktop": {
     "enabled": false
   },
-  
-  "tags": ["weather", "forecast", "climate", "tools"]
+  "tags": [
+    "weather",
+    "forecast",
+    "climate",
+    "tools"
+  ],
+  "scripts": [
+    {
+      "name": "app",
+      "path": "app.py",
+      "description": "Script: app.py"
+    },
+    {
+      "name": "collect_missing_days",
+      "path": "collect_missing_days.py",
+      "description": "Script: collect_missing_days.py"
+    },
+    {
+      "name": "config",
+      "path": "config.py",
+      "description": "Script: config.py"
+    },
+    {
+      "name": "tides_service",
+      "path": "tides_service.py",
+      "description": "Script: tides_service.py"
+    },
+    {
+      "name": "weather_service",
+      "path": "weather_service.py",
+      "description": "Script: weather_service.py"
+    }
+  ]
 }
-
